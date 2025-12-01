@@ -8,6 +8,9 @@ let totalCount = 0;
 let lastMilestone = 0; // Track last milestone reached
 let fastMode = false;
 
+// Detect if device is touch-enabled (mobile/tablet)
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
 // DOM elements
 const pandaBtn = document.getElementById('pandaBtn');
 const squirtleBtn = document.getElementById('squirtleBtn');
@@ -48,26 +51,53 @@ function initializeEventListeners() {
     submitBtn.addEventListener('click', checkAnswer);
     keypadSubmitBtn.addEventListener('click', checkAnswer);
 
-    // Keyboard input
+    // Keyboard input (for desktop)
     answerInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             checkAnswer();
         }
     });
 
+    // Prevent keyboard from appearing on touch devices only
+    if (isTouchDevice) {
+        answerInput.setAttribute('readonly', 'readonly');
+        answerInput.setAttribute('inputmode', 'none');
+        
+        answerInput.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            answerInput.blur();
+        });
+        
+        answerInput.addEventListener('focus', (e) => {
+            e.preventDefault();
+            answerInput.blur();
+        });
+        
+        answerInput.addEventListener('click', (e) => {
+            e.preventDefault();
+            answerInput.blur();
+        });
+    }
+
     // Keypad buttons
     keypadButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const value = btn.getAttribute('data-value');
             answerInput.value += value;
-            answerInput.focus();
+            // Only blur on touch devices to prevent keyboard
+            if (isTouchDevice) {
+                answerInput.blur();
+            }
         });
     });
 
     // Clear button
     clearBtn.addEventListener('click', () => {
         answerInput.value = '';
-        answerInput.focus();
+        // Only blur on touch devices to prevent keyboard
+        if (isTouchDevice) {
+            answerInput.blur();
+        }
     });
 
     // Fast mode toggle
@@ -81,8 +111,10 @@ function initializeEventListeners() {
         }
     });
 
-    // Focus input on load
-    answerInput.focus();
+    // Focus input on load only for desktop (not touch devices)
+    if (!isTouchDevice) {
+        answerInput.focus();
+    }
 }
 
 // Switch theme (Panda or Squirtle)
@@ -142,7 +174,13 @@ function generateNewQuestion() {
     }
     
     answerInput.value = '';
-    answerInput.focus();
+    // Only blur on touch devices to prevent keyboard
+    if (isTouchDevice) {
+        answerInput.blur();
+    } else {
+        // On desktop, focus the input for keyboard entry
+        answerInput.focus();
+    }
     feedbackElement.textContent = '';
     feedbackElement.className = 'feedback empty';
 }

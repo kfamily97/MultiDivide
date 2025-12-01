@@ -238,6 +238,16 @@ body.theme-squirtle .character-btn.active {
     font-weight: bold;
 }
 
+/* Touch device specific styles */
+@media (hover: none) and (pointer: coarse) {
+    #answerInput {
+        cursor: default;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: none;
+    }
+}
+
 #answerInput:focus {
     outline: none;
     border-color: #764ba2;
