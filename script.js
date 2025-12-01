@@ -271,6 +271,39 @@ function playSuccessSound() {
     oscillator.stop(audioContext.currentTime + 0.3);
 }
 
+// Trigger confetti celebration
+function triggerConfetti() {
+    const duration = 3000; // 3 seconds
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        
+        // Launch confetti from multiple points
+        confetti({
+            ...defaults,
+            particleCount,
+            origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+        });
+        confetti({
+            ...defaults,
+            particleCount,
+            origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+        });
+    }, 250);
+}
+
 // Load achievements from localStorage
 function loadAchievements() {
     const achievements = JSON.parse(localStorage.getItem('mathAchievements') || '[]');
@@ -359,6 +392,8 @@ function checkAnswer() {
         if (nextMilestone > lastMilestone && nextMilestone >= 50) {
             saveAchievement(currentMode, currentTheme, nextMilestone);
             lastMilestone = nextMilestone;
+            // Trigger confetti celebration!
+            triggerConfetti();
             if (!fastMode) {
                 feedbackElement.textContent = `🎉 Correct! 🏆 Achievement Unlocked: ${nextMilestone} Correct Answers!`;
             }
