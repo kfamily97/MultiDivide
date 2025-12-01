@@ -2,6 +2,20 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent text selection on buttons and interactive elements */
+button, .keypad-btn, .mode-btn, .character-btn, .toggle-label {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Allow text selection in input fields */
+input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 body {
@@ -523,6 +537,41 @@ body.theme-squirtle .achievement-item .achievement-mode {
     color: #999;
     font-style: italic;
     padding: 20px;
+}
+
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #e5e7eb;
+}
+
+.refresh-btn {
+    padding: 12px 24px;
+    font-size: 1em;
+    font-weight: bold;
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.refresh-btn:hover {
+    background: #4b5563;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(107, 114, 128, 0.4);
+}
+
+.refresh-btn:active {
+    transform: translateY(0);
+}
+
+/* Prevent double-tap zoom on iOS */
+button, input, .keypad-btn, .mode-btn, .character-btn {
+    touch-action: manipulation;
 }
 
 @media (max-width: 600px) {

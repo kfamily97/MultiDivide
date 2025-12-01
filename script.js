@@ -124,6 +124,12 @@ function initializeEventListeners() {
     if (!isTouchDevice) {
         answerInput.focus();
     }
+
+    // Refresh button
+    const refreshBtn = document.getElementById('refreshBtn');
+    refreshBtn.addEventListener('click', () => {
+        window.location.reload(true);
+    });
 }
 
 // Switch theme (Panda or Squirtle)
