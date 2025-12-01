@@ -6,6 +6,7 @@ let queuedQuestion = null;
 let correctCount = 0;
 let totalCount = 0;
 let lastMilestone = 0; // Track last milestone reached
+let lastMotivationalMilestone = 0; // Track last motivational message shown (every 5)
 let fastMode = false;
 
 // Detect if device is touch-enabled (mobile/tablet)
@@ -29,6 +30,7 @@ const achievementsList = document.getElementById('achievementsList');
 const mainTitle = document.getElementById('mainTitle');
 const fastModeToggle = document.getElementById('fastModeToggle');
 const queuedQuestionElement = document.getElementById('queuedQuestion');
+const motivationalMessage = document.getElementById('motivationalMessage');
 
 // Initialize
 loadAchievements();
@@ -88,7 +90,14 @@ function initializeEventListeners() {
             if (isTouchDevice) {
                 answerInput.blur();
             }
+            // Check if answer is correct and auto-submit
+            checkAutoSubmit();
         });
+    });
+
+    // Auto-submit when correct answer is entered (for keyboard input)
+    answerInput.addEventListener('input', () => {
+        checkAutoSubmit();
     });
 
     // Clear button
@@ -271,6 +280,64 @@ function playSuccessSound() {
     oscillator.stop(audioContext.currentTime + 0.3);
 }
 
+// Show motivational message every 5 correct answers
+function showMotivationalMessage(currentCorrect) {
+    const remaining = 50 - currentCorrect;
+    let message = '';
+    let urgency = '';
+    
+    // Get more urgent and exciting as they approach 50
+    if (remaining <= 5 && remaining > 0) {
+        // Very close - super exciting!
+        urgency = 'super-urgent';
+        const messages = [
+            `🔥 SO CLOSE! ${currentCorrect}/50 correct! Only ${remaining} more to go! 🔥`,
+            `⚡ ALMOST THERE! ${currentCorrect} correct! Just ${remaining} left! ⚡`,
+            `🎯 YOU'RE AMAZING! ${currentCorrect}/50! ${remaining} more for the achievement! 🎯`,
+            `💥 INCREDIBLE! ${currentCorrect} correct! ${remaining} to go! 💥`
+        ];
+        message = messages[Math.floor(Math.random() * messages.length)];
+    } else if (remaining <= 10 && remaining > 5) {
+        // Getting close - very exciting
+        urgency = 'very-urgent';
+        const messages = [
+            `🌟 Awesome! ${currentCorrect}/50 correct! ${remaining} more to go! 🌟`,
+            `✨ You're doing great! ${currentCorrect} correct! ${remaining} left! ✨`,
+            `🚀 Keep it up! ${currentCorrect}/50! ${remaining} more! 🚀`,
+            `💪 Amazing progress! ${currentCorrect} correct! ${remaining} to go! 💪`
+        ];
+        message = messages[Math.floor(Math.random() * messages.length)];
+    } else if (remaining <= 20 && remaining > 10) {
+        // Getting there - exciting
+        urgency = 'urgent';
+        const messages = [
+            `🎉 Great job! ${currentCorrect}/50 correct! ${remaining} more to go! 🎉`,
+            `⭐ You're on fire! ${currentCorrect} correct! ${remaining} left! ⭐`,
+            `🏆 Excellent work! ${currentCorrect}/50! ${remaining} more! 🏆`,
+            `💫 Keep going! ${currentCorrect} correct! ${remaining} to go! 💫`
+        ];
+        message = messages[Math.floor(Math.random() * messages.length)];
+    } else {
+        // Early stages - encouraging
+        urgency = 'encouraging';
+        const messages = [
+            `👍 Nice! ${currentCorrect}/50 correct! ${remaining} more to go! 👍`,
+            `👏 Well done! ${currentCorrect} correct! ${remaining} left! 👏`,
+            `🎊 Good work! ${currentCorrect}/50! ${remaining} more! 🎊`,
+            `💯 Keep it up! ${currentCorrect} correct! ${remaining} to go! 💯`
+        ];
+        message = messages[Math.floor(Math.random() * messages.length)];
+    }
+    
+    motivationalMessage.textContent = message;
+    motivationalMessage.className = `motivational-message ${urgency} show`;
+    
+    // Hide after 4 seconds
+    setTimeout(() => {
+        motivationalMessage.classList.remove('show');
+    }, 4000);
+}
+
 // Trigger confetti celebration
 function triggerConfetti() {
     const duration = 3000; // 3 seconds
@@ -357,8 +424,22 @@ function initializeMilestone() {
     }
 }
 
+// Check if answer matches and auto-submit if correct
+function checkAutoSubmit() {
+    const userAnswer = answerInput.value.trim();
+    if (userAnswer && currentQuestion) {
+        const parsedAnswer = parseInt(userAnswer);
+        if (!isNaN(parsedAnswer) && parsedAnswer === currentQuestion.answer) {
+            // Small delay to show the number was entered, then auto-submit
+            setTimeout(() => {
+                checkAnswer(true); // Pass true to indicate auto-submit
+            }, 100);
+        }
+    }
+}
+
 // Check the answer
-function checkAnswer() {
+function checkAnswer(isAutoSubmit = false) {
     const userAnswer = parseInt(answerInput.value.trim());
     
     if (isNaN(userAnswer)) {
@@ -379,12 +460,17 @@ function checkAnswer() {
         // Play success sound
         playSuccessSound();
         
-        // Flash green in fast mode
-        if (fastMode) {
-            questionElement.classList.add('flash-green');
-            setTimeout(() => {
-                questionElement.classList.remove('flash-green');
-            }, 400);
+        // Flash green (always flash, not just in fast mode)
+        questionElement.classList.add('flash-green');
+        setTimeout(() => {
+            questionElement.classList.remove('flash-green');
+        }, 400);
+        
+        // Check for motivational messages every 5 correct answers
+        const motivationalMilestone = Math.floor(correctCount / 5) * 5;
+        if (motivationalMilestone > lastMotivationalMilestone && motivationalMilestone >= 5) {
+            lastMotivationalMilestone = motivationalMilestone;
+            showMotivationalMessage(correctCount);
         }
         
         // Check for 50 correct answers milestone (50, 100, 150, etc.)
